@@ -1,14 +1,18 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from .serializers import UserSerializer
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
 #from django.db.models.aggregates import Case, When
 from django.db.models import CharField, Value, Case, When
 from .models import Subscribe
+from .permissions import CustomPermission
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
-
+from djoser.serializers import SetPasswordSerializer
+from djoser.utils import logout_user
 User = get_user_model()
 
 #admin = User.object.get(id=1)
@@ -21,33 +25,47 @@ User = get_user_model()
 class UsersViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    lookup_field = 'username'
-    permission_classes = (IsAuthenticated,)# IsSuperuser | IsAdmin,)
+    lookup_field = 'id'
+    permission_classes = (CustomPermission,)# IsSuperuser | IsAdmin,)
 
     def get_queryset(self):
         user = self.request.user
-        subs = Subscribe.objects.all().filter(subscriber=user)
+        subs = Subscribe.objects.all().filter(subscriber=user.pk)
         queryset = super().get_queryset()
-        if self.action == "list":
-            queryset = queryset.annotate(
-                is_subscribed=Case(When(id__in=subs, then=Value('true')),
-                                   output_field=CharField(),
-                                   default=Value('false')
-                                   )
-            )
+        queryset = queryset.annotate(
+            is_subscribed=Case(When(id__in=subs, then=Value('true')),
+                               output_field=CharField(),
+                               default=Value('false')
+                               )
+        )
         return queryset
 
     @action(detail=False,
             permission_classes=[IsAuthenticated],
-            methods=['get', 'patch'],
+            methods=['get'],
             url_path='me')
     def me(self, request):
-        if request.method != 'GET':
-            serializer = self.get_serializer(
-                instance=request.user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            serializer = self.get_serializer(request.user, many=False)
-            return Response(serializer.data)
+        serializer = self.get_serializer(request.user, many=False)
+        return Response(serializer.data)
+
+    @action(detail=False,
+            permission_classes=[IsAuthenticated],
+            methods=['post'],
+            url_path='set_password')
+    def set_password(self, request):
+        data = {}
+        for field in ['new_password', 'current_password']:
+            if field not in request.data:
+                data[field] = 'is required!'
+                return Response(data)
+        if request.user.check_password(request.data['current_password']):
+            try:
+                validate_password(request.data['new_password'], request.user)
+            except Exception as error:
+                return Response(data={'error': str(error)})
+            request.user.set_password(request.data['new_password'])
+            request.user.save()
+            logout_user(request)
+            return Response(data={'message': "Success!"},
+                            status=status.HTTP_204_NO_CONTENT)
+        return Response(data={'error': 'wrong password'})
