@@ -1,18 +1,20 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
-from .serializers import UserSerializer
-from django.shortcuts import get_object_or_404
-from rest_framework import filters, status, viewsets
 #from django.db.models.aggregates import Case, When
-from django.db.models import CharField, Value, Case, When
-from .models import Subscribe
-from .permissions import CustomPermission
-from rest_framework.response import Response
-from rest_framework.decorators import action, api_view, permission_classes
+from django.db.models import Case, CharField, Value, When
+from django.shortcuts import get_object_or_404
 from djoser.serializers import SetPasswordSerializer
 from djoser.utils import logout_user
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+
+from .models import Subscribe
+from .permissions import CustomPermission
+from .serializers import UserSerializer
+
 User = get_user_model()
 
 #admin = User.object.get(id=1)
@@ -62,10 +64,10 @@ class UsersViewSet(viewsets.ModelViewSet):
             try:
                 validate_password(request.data['new_password'], request.user)
             except Exception as error:
-                return Response(data={'error': str(error)})
+                return Response(data={'errors': ' '.join(error)})
             request.user.set_password(request.data['new_password'])
             request.user.save()
             logout_user(request)
             return Response(data={'message': "Success!"},
                             status=status.HTTP_204_NO_CONTENT)
-        return Response(data={'error': 'wrong password'})
+        return Response(data={'errors': 'wrong password'})
