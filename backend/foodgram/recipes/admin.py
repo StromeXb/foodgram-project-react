@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Ingredient, MeasureUnit, Recipe, RecipeContent, Tag
+from .models import Ingredient, MeasureUnit, Recipe, RecipeContent, Tag, Favorite
 
 
 @admin.register(Recipe)
@@ -70,4 +70,15 @@ class IngredientAdmin(admin.ModelAdmin):
         'measurement_unit',
     )
     search_fields = ('name',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    """Страница админ. панели избранного."""
+
+    list_display = (
+        'user',
+        'recipe',
+    )
     empty_value_display = '-пусто-'

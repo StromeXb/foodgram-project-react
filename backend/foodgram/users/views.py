@@ -13,26 +13,23 @@ from rest_framework.response import Response
 
 from .models import Subscribe
 from .permissions import CustomPermission
-from .serializers import UserSerializer
+from .serializers import UserSerializer, SubscribeSerializer
+from recipes.paginator import CustomPagePaginator
+from djoser.views import UserViewSet
 
 User = get_user_model()
 
-#admin = User.object.get(id=1)
 
-#subs = Subscribe.objects.all().filter(subscriber=admin)
-
-#users = User.objects.all().annotate(is_subscribed=Case(When(id__in=subs, then=Value('true')), output_field=CharField(), default=Value('false')))
-
-
-class UsersViewSet(viewsets.ModelViewSet):
+class UsersViewSet(UserViewSet):
+    pagination_class = CustomPagePaginator
     serializer_class = UserSerializer
-    queryset = User.objects.all()
-    lookup_field = 'id'
-    permission_classes = (CustomPermission,)# IsSuperuser | IsAdmin,)
+    permission_classes = (CustomPermission)
 
     def get_queryset(self):
         user = self.request.user
-        subs = Subscribe.objects.all().filter(subscriber=user.pk)
+        subs = Subscribe.objects.all().filter(
+            subscriber=user.pk
+        ).values_list('author_id', flat=True).distinct()
         queryset = super().get_queryset()
         queryset = queryset.annotate(
             is_subscribed=Case(When(id__in=subs, then=Value('true')),
@@ -42,32 +39,41 @@ class UsersViewSet(viewsets.ModelViewSet):
         )
         return queryset
 
-    @action(detail=False,
+    @action(detail=True,
             permission_classes=[IsAuthenticated],
-            methods=['get'],
-            url_path='me')
-    def me(self, request):
-        serializer = self.get_serializer(request.user, many=False)
-        return Response(serializer.data)
+            methods=['GET', 'DELETE'],
+            url_path='subscribe')
+    def subscribe(self, request, id=None):
+        user = get_object_or_404(User, id=id)
+        if user == request.user:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'errors': "You can't subscribe to yourself"}
+            )
+        exists = Subscribe.objects.filter(subscriber=request.user, author=user).exists()
+        if request.method == 'GET':
+            if exists:
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={'errors': 'Already subscribed'}
+                    )
+            Subscribe.objects.create(subscriber=request.user, author=user)
+            serializer = SubscribeSerializer(user)
+            return Response(serializer.data)
+        else:
+            if not exists:
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={'errors': 'Not subscribed'}
+                    )
+            Subscribe.objects.filter(subscriber=request.user, author=user).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
             permission_classes=[IsAuthenticated],
-            methods=['post'],
-            url_path='set_password')
-    def set_password(self, request):
-        data = {}
-        for field in ['new_password', 'current_password']:
-            if field not in request.data:
-                data[field] = 'is required!'
-                return Response(data)
-        if request.user.check_password(request.data['current_password']):
-            try:
-                validate_password(request.data['new_password'], request.user)
-            except Exception as error:
-                return Response(data={'errors': ' '.join(error)})
-            request.user.set_password(request.data['new_password'])
-            request.user.save()
-            logout_user(request)
-            return Response(data={'message': "Success!"},
-                            status=status.HTTP_204_NO_CONTENT)
-        return Response(data={'errors': 'wrong password'})
+            methods=['get'],
+            url_path='subscriptions')
+    def subscriptions(self, request):
+        queryset = self.get_queryset().filter(is_subscribed='true')
+        serializer = SubscribeSerializer(queryset, many=True)
+        return Response(serializer.data)

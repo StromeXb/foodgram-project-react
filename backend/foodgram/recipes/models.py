@@ -31,8 +31,11 @@ class Ingredient(models.Model):
     """
     Класс для ингредиетов
     """
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200)
     measurement_unit = models.ForeignKey(MeasureUnit, on_delete=models.CASCADE, related_name='ingredients')
+
+    class Meta:
+        unique_together = ('name', 'measurement_unit')
 
     def __str__(self):
         """при печати объекта выводится название"""
@@ -45,7 +48,7 @@ class Recipe(models.Model):
     """
     tags = models.ManyToManyField(Tag, related_name='recipes')
     image = models.ImageField(upload_to='images/')
-    ingredients = models.ManyToManyField(Ingredient, through='RecipeContent', related_name='ingredients')
+    ingredients = models.ManyToManyField(Ingredient, through='RecipeContent')
     name = models.CharField(max_length=200, unique=True)
     text = models.TextField()
     cooking_time = models.IntegerField(
@@ -53,7 +56,7 @@ class Recipe(models.Model):
             MinValueValidator(1, 'This value must be an integer 1 or more'),
         ]
     )
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipes')
 
     def __str__(self):
         return self.name
@@ -82,6 +85,14 @@ class Favorite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='favorites')
 
+    class Meta:
+        # unique_together = (('user', 'recipe'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='unique user per recipe in favorites'
+            ),
+        ]
+
 
 class ShoppingCart(models.Model):
     """
@@ -89,3 +100,10 @@ class ShoppingCart(models.Model):
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_cart')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='shopping_cart')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='unique user per recipe in shopping cart'
+            ),
+        ]
