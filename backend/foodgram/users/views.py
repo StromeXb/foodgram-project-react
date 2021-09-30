@@ -1,21 +1,17 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.password_validation import validate_password
-#from django.db.models.aggregates import Case, When
 from django.db.models import Case, CharField, Value, When
 from django.shortcuts import get_object_or_404
-from djoser.serializers import SetPasswordSerializer
-from djoser.utils import logout_user
-from rest_framework import filters, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from djoser.views import UserViewSet
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from recipes.paginator import CustomPagePaginator
 
 from .models import Subscribe
 from .permissions import CustomPermission
-from .serializers import UserSerializer, SubscribeSerializer
-from recipes.paginator import CustomPagePaginator
-from djoser.views import UserViewSet
+from .serializers import SubscribeSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -23,7 +19,7 @@ User = get_user_model()
 class UsersViewSet(UserViewSet):
     pagination_class = CustomPagePaginator
     serializer_class = UserSerializer
-    permission_classes = (CustomPermission)
+    permission_classes = (CustomPermission,)
 
     def get_queryset(self):
         user = self.request.user
@@ -75,5 +71,9 @@ class UsersViewSet(UserViewSet):
             url_path='subscriptions')
     def subscriptions(self, request):
         queryset = self.get_queryset().filter(is_subscribed='true')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = SubscribeSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = SubscribeSerializer(queryset, many=True)
         return Response(serializer.data)

@@ -1,24 +1,35 @@
-from django.shortcuts import render
-from rest_framework import filters, status, viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.db.models import Case, CharField, Value, When
-from rest_framework.decorators import action, api_view, permission_classes
-from .models import Ingredient, Tag, Recipe, Favorite, ShoppingCart
-from .serializers import IngredientSerializer, TagSerializer, RecipeSerializer
+from django.db.models import Case, CharField, Sum, Value, When
 from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.renderers import BaseRenderer
 from rest_framework.response import Response
-from .paginator import CustomPagePaginator
+
 from users.serializers import PartialRecipeSerializer
+
 from .filters import CustomFilterBackend, CustomSearch
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .paginator import CustomPagePaginator
 from .permissions import IsOwnerOrReadOnly
-from rest_framework import filters
-# Create your views here.
+from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
+
+
+class BinaryFileRenderer(BaseRenderer):
+    media_type = 'application/octet-stream'
+    format = None
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        return data
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TagSerializer
     permission_classes = [AllowAny]
     queryset = Tag.objects.all()
+    pagination_class = None
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -49,14 +60,15 @@ class RecipesViewSet(viewsets.ModelViewSet):
         queryset = queryset.annotate(
             is_favorited=Case(
                 When(id__in=fav, then=Value('true')),
-               output_field=CharField(),
-               default=Value('false')
+                output_field=CharField(),
+                default=Value('false')
             )
         ).annotate(
-            is_in_shopping_cart=Case(When(id__in=shop, then=Value('true')),
-                               output_field=CharField(),
-                               default=Value('false')
-                               )
+            is_in_shopping_cart=Case(
+                When(id__in=shop, then=Value('true')),
+                output_field=CharField(),
+                default=Value('false')
+            )
         )
         return queryset
 
@@ -66,7 +78,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
             url_path='favorite')
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        exists = Favorite.objects.filter(user=request.user, recipe=recipe).exists()
+        exists = Favorite.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).exists()
         if request.method == 'GET':
             if exists:
                 return Response(
@@ -91,7 +106,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
             url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        exists = ShoppingCart.objects.filter(user=request.user, recipe=recipe).exists()
+        exists = ShoppingCart.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).exists()
         if request.method == 'GET':
             if exists:
                 return Response(
@@ -107,5 +125,38 @@ class RecipesViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'errors': 'Not in shopping cart'}
                     )
-            ShoppingCart.objects.filter(user=request.user, recipe=recipe).delete()
+            ShoppingCart.objects.filter(
+                user=request.user,
+                recipe=recipe
+            ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False,
+            permission_classes=[IsAuthenticated],
+            methods=['GET'],
+            url_path='download_shopping_cart',
+            renderer_classes=(BinaryFileRenderer,))
+    def download_shopping_cart(self, request):
+        shopping_list = ShoppingCart.objects.all().filter(
+            user=request.user
+        ).values(
+            'recipe__ingredients__name',
+            'recipe__ingredients__measurement_unit__unit').annotate(
+            total=Sum('recipe__recipe_content__amount')
+        ).values_list(
+            'recipe__ingredients__name',
+            'total',
+            'recipe__ingredients__measurement_unit__unit'
+        )
+        text = 'СПИСОК ПОКУПОК:\n'
+        headers = {
+            'Content-Disposition': 'attachment; filename="shopping_list.txt"'
+        }
+        for line in shopping_list:
+            text += str(line[0])+': '+str(line[1])+', '+str(line[2])+'\n'
+        return Response(
+            data=bytes(text.encode('utf8')),
+            headers=headers,
+            content_type='application/txt'
+        )
+
