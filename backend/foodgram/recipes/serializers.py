@@ -1,6 +1,6 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
 
 from users.serializers import UserSerializer
 
@@ -103,7 +103,6 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def create_or_update(self, validated_data, instance=None):
         args = locals()
-        print(args)
         contents = validated_data.pop('recipe_content')
         tags = validated_data.pop('tags')
         if instance:

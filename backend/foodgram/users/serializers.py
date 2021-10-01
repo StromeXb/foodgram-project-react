@@ -27,6 +27,8 @@ class UserSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if Subscribe.objects.filter(subscriber=user, author=obj).exists():
             return True
+        return False
+
 
 class UsersCreateSerializer(UserCreateSerializer):
 

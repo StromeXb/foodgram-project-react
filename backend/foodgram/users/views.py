@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Case, CharField, Value, When
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
@@ -41,7 +40,7 @@ class UsersViewSet(UserViewSet):
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'errors': 'Already subscribed'}
-                    )
+                )
             Subscribe.objects.create(subscriber=request.user, author=user)
             context = {'request': request}
             serializer = SubscribeSerializer(user, context=context)
@@ -51,7 +50,7 @@ class UsersViewSet(UserViewSet):
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'errors': 'Not subscribed'}
-                    )
+                )
             Subscribe.objects.filter(
                 subscriber=request.user,
                 author=user
