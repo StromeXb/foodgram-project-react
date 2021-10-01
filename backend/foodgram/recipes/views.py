@@ -143,8 +143,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
             'Content-Disposition': 'attachment; filename="shopping_list.txt"'
         }
         for line in shopping_list:
-            text += (str(line[0])+': ' + str(line[1])
-                     + ', ' + str(line[2]) + '\n')
+            text += (str(line[0]) + ': ' + str(line[1]) +
+                     ', ' + str(line[2]) + '\n')
         return Response(
             data=bytes(text.encode('utf8')),
             headers=headers,

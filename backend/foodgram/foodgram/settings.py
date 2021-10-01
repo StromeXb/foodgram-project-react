@@ -136,7 +136,7 @@ DJOSER = {
             "token_create": "djoser.serializers.TokenCreateSerializer",
         },
     "HIDE_USERS": False,
- }
+}
 
 LANGUAGE_CODE = 'en-us'
 

@@ -14,8 +14,8 @@ class User(AbstractUser):
         max_length=150,
         unique=True,
         help_text=(
-            'Required. 150 characters or fewer.' +
-            'Letters, digits and @/./+/-/_ only.'
+                'Required. 150 characters or fewer.' +
+                'Letters, digits and @/./+/-/_ only.'
         ),
         validators=[username_validator],
         error_messages={
@@ -30,7 +30,7 @@ class User(AbstractUser):
         max_length=254,
         blank=False,
         error_messages={
-             'unique': "A user with that email already exists.",
+            'unique': "A user with that email already exists.",
         },
     )
     password = models.CharField('пароль', max_length=150, blank=False)
