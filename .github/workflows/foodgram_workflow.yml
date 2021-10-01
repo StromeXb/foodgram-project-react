@@ -26,7 +26,7 @@ jobs:
       working-directory: ./backend/foodgram
       run: |
         # запуск проверки проекта по flake8
-        python -m flake8 --ignore=R504
+        python -m flake8 --ignore=R504,W504 --ignore=E501 foodgram/*
                 # запустить написанные разработчиком тесты
         python manage.py test
   build_and_push_to_docker_hub:
