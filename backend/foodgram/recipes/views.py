@@ -11,8 +11,8 @@ from .filters import CustomFilterBackend, CustomSearch
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .paginator import CustomPagePaginator
 from .permissions import IsOwnerOrReadOnly
-from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
 from .renders import BinaryFileRenderer
+from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):

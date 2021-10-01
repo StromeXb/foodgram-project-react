@@ -3,8 +3,8 @@ from rest_framework.exceptions import ValidationError
 
 from users.serializers import UserSerializer
 
-from .models import Ingredient, Recipe, RecipeContent, Tag
 from .fields import Base64ImageField
+from .models import Ingredient, Recipe, RecipeContent, Tag
 
 
 class TagSerializer(serializers.ModelSerializer):

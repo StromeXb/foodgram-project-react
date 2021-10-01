@@ -76,7 +76,7 @@ class UsersViewSet(UserViewSet):
             methods=['get'],
             url_path='subscriptions')
     def subscriptions(self, request):
-        recipes_limit = request.query_params.get('recipes_limit', 10)
+        recipes_limit = request.query_params.get('recipes_limit', 3)
         context = {'recipes_limit': recipes_limit}
         queryset = self.get_queryset().filter(is_subscribed='true')
         page = self.paginate_queryset(queryset)
