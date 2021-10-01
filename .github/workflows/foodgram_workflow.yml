@@ -25,6 +25,7 @@ jobs:
     - name: Test with flake8 and django tests
       working-directory: ./backend/foodgram
       run: |
+        export SECRET_KEY=${{ secrets.SECRET_KEY }}
         # запуск проверки проекта по flake8
         python -m flake8 --ignore=R504,W504 --ignore=E501 foodgram/*
                 # запустить написанные разработчиком тесты
