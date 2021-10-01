@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env
   backend:
-    image: stromex/foodgram-backend
+    image: stromex/foodgram-backend:latest
     restart: always
     volumes:
       - static_value:/backend/static_django/
@@ -19,7 +19,7 @@ services:
     env_file:
       - ./.env
   frontend:
-    image: stromex/foodgram-frontend
+    image: stromex/foodgram-frontend:latest
     volumes:
       - frontend_data:/app/result_build/
   nginx:
