@@ -38,7 +38,7 @@ class SubscribeSerializer(UserSerializer):
 
     class Meta:
         fields = (
-            'username', 'email', 'first_name', 'last_name',
+            'id', 'username', 'email', 'first_name', 'last_name',
             'is_subscribed', 'recipes', 'recipes_count',
         )
         model = User
@@ -51,6 +51,6 @@ class SubscribeSerializer(UserSerializer):
         queryset = obj.recipes.all()[:int(recipes_limit)]
         serializer = PartialRecipeSerializer(queryset, many=True)
         return serializer.data
-    
+
     def get_recipes_count(self, obj):
         return obj.recipes.count()
