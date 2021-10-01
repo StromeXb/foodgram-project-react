@@ -97,7 +97,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 )
             if not attrs.get('recipe_content'):
                 raise serializers.ValidationError(
-                    'Please provide ingredients'+str(attrs)
+                    'Please provide ingredients'
                 )
         return attrs
 
