@@ -11,11 +11,7 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
 
-    is_subscribed = serializers.SerializerMethodField(
-        default=False,
-        read_only=True,
-        required=False
-    )
+    is_subscribed = serializers.SerializerMethodField(default=False)
 
     class Meta:
         fields = ('email', 'id', 'username', 'first_name',

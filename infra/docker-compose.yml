@@ -7,9 +7,7 @@ services:
     env_file:
       - ./.env
   backend:
-    build:
-      context: ../backend/foodgram/
-      dockerfile: Dockerfile
+    image: stromex/foodgram-backend
     restart: always
     volumes:
       - static_value:/backend/static_django/
