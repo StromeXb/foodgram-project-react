@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 
 from users.serializers import UserSerializer
 
@@ -90,6 +91,14 @@ class RecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Cooking time must be greater then 1'
                 )
+            if not attrs['tags']:
+                raise serializers.ValidationError(
+                    'Please provide tags'
+                )
+            if not attrs.get('recipe_content'):
+                raise serializers.ValidationError(
+                    'Please provide ingredients'+str(attrs)
+                )
         return attrs
 
     def create_or_update(self, validated_data, instance=None):
@@ -115,7 +124,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             content = RecipeContentSerializer(item).data
             amount = content['amount']
             ingredient_id = content['id']
-            ingredient = Ingredient.objects.get(pk=ingredient_id)
+            ingredient = get_object_or_404(Ingredient, pk=ingredient_id)
             content = RecipeContent.objects.create(
                 recipe=instance,
                 ingredient=ingredient,

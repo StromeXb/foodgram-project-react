@@ -4,12 +4,18 @@ from rest_framework import serializers
 
 from recipes.models import Recipe
 
+from .models import Subscribe
+
 User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
 
-    is_subscribed = serializers.BooleanField(default=False)
+    is_subscribed = serializers.SerializerMethodField(
+        default=False,
+        read_only=True,
+        required=False
+    )
 
     class Meta:
         fields = ('email', 'id', 'username', 'first_name',
@@ -17,6 +23,10 @@ class UserSerializer(serializers.ModelSerializer):
                   )
         model = User
 
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if Subscribe.objects.filter(subscriber=user, author=obj).exists():
+            return True
 
 class UsersCreateSerializer(UserCreateSerializer):
 
@@ -47,8 +57,8 @@ class SubscribeSerializer(UserSerializer):
         }
 
     def get_recipes(self, obj):
-        recipes_limit = self.context['recipes_limit']
-        queryset = obj.recipes.all()[:int(recipes_limit)]
+        limit = self.context['request'].query_params.get('recipes_limit', 3)
+        queryset = obj.recipes.all()[:int(limit)]
         serializer = PartialRecipeSerializer(queryset, many=True)
         return serializer.data
 

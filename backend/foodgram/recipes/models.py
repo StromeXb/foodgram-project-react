@@ -15,7 +15,11 @@ class Tag(models.Model):
         unique=True
     )
     color = models.CharField(verbose_name='Код цвета', max_length=7)
-    slug = models.SlugField(verbose_name='Код тэга', max_length=200, unique=True)
+    slug = models.SlugField(
+        verbose_name='Код тэга',
+        max_length=200,
+        unique=True
+    )
 
     def __str__(self):
         return self.name

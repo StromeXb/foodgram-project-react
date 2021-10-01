@@ -21,20 +21,6 @@ class UsersViewSet(UserViewSet):
     serializer_class = UserSerializer
     permission_classes = (CustomPermission,)
 
-    def get_queryset(self):
-        user = self.request.user
-        subs = Subscribe.objects.all().filter(
-            subscriber=user.pk
-        ).values_list('author_id', flat=True).distinct()
-        queryset = super().get_queryset()
-        queryset = queryset.annotate(
-            is_subscribed=Case(When(id__in=subs, then=Value('true')),
-                               output_field=CharField(),
-                               default=Value('false')
-                               )
-        )
-        return queryset
-
     @action(detail=True,
             permission_classes=[IsAuthenticated],
             methods=['GET', 'DELETE'],
@@ -57,7 +43,8 @@ class UsersViewSet(UserViewSet):
                     data={'errors': 'Already subscribed'}
                     )
             Subscribe.objects.create(subscriber=request.user, author=user)
-            serializer = SubscribeSerializer(user)
+            context = {'request': request}
+            serializer = SubscribeSerializer(user, context=context)
             return Response(serializer.data)
         else:
             if not exists:
@@ -76,9 +63,11 @@ class UsersViewSet(UserViewSet):
             methods=['get'],
             url_path='subscriptions')
     def subscriptions(self, request):
-        recipes_limit = request.query_params.get('recipes_limit', 3)
-        context = {'recipes_limit': recipes_limit}
-        queryset = self.get_queryset().filter(is_subscribed='true')
+        subs = Subscribe.objects.all().filter(
+            subscriber=request.user.pk
+        ).values_list('author_id', flat=True).distinct()
+        context = {'request': request}
+        queryset = self.get_queryset().filter(id__in=subs)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = SubscribeSerializer(page, many=True, context=context)
