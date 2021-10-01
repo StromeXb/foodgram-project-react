@@ -14,7 +14,7 @@ jobs:
         python-version: 3.8
 
     - name: Install dependencies
-      working-directory: ./backend/foodgram
+      working-directory: ./backend
       run: | 
         # обновление pip
         python -m pip install --upgrade pip 
@@ -23,7 +23,7 @@ jobs:
         # установка зависимостей
           pip install -r requirements.txt 
     - name: Test with flake8 and django tests
-      working-directory: ./backend/foodgram
+      working-directory: ./backend
       run: |
         export SECRET_KEY=${{ secrets.SECRET_KEY }}
         export SECRET_KEY=${{ secrets.DB_ENGINE }}
@@ -35,6 +35,7 @@ jobs:
         export SECRET_KEY=${{ secrets.SECRET_KEY }}
         # запуск проверки проекта по flake8
         python -m flake8 --ignore=R504,W504 --ignore=E501 foodgram/*
+        python manage.py test
   build_and_push_to_docker_hub:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
@@ -52,6 +53,6 @@ jobs:
     - name: Push to Docker Hub
       uses: docker/build-push-action@v2
       with:
-        context: ./backend/foodgram
+        context: ./backend
         push: true
         tags: stromex/foodgram-backend:latest
