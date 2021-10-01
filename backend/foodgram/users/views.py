@@ -46,7 +46,10 @@ class UsersViewSet(UserViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
                 data={'errors': "You can't subscribe to yourself"}
             )
-        exists = Subscribe.objects.filter(subscriber=request.user, author=user).exists()
+        exists = Subscribe.objects.filter(
+            subscriber=request.user,
+            author=user
+        ).exists()
         if request.method == 'GET':
             if exists:
                 return Response(
@@ -62,7 +65,10 @@ class UsersViewSet(UserViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'errors': 'Not subscribed'}
                     )
-            Subscribe.objects.filter(subscriber=request.user, author=user).delete()
+            Subscribe.objects.filter(
+                subscriber=request.user,
+                author=user
+            ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
@@ -70,10 +76,12 @@ class UsersViewSet(UserViewSet):
             methods=['get'],
             url_path='subscriptions')
     def subscriptions(self, request):
+        recipes_limit = request.query_params.get('recipes_limit', 10)
+        context = {'recipes_limit': recipes_limit}
         queryset = self.get_queryset().filter(is_subscribed='true')
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = SubscribeSerializer(page, many=True)
+            serializer = SubscribeSerializer(page, many=True, context=context)
             return self.get_paginated_response(serializer.data)
-        serializer = SubscribeSerializer(queryset, many=True)
+        serializer = SubscribeSerializer(queryset, many=True, context=context)
         return Response(serializer.data)

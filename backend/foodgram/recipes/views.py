@@ -3,7 +3,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.renderers import BaseRenderer
 from rest_framework.response import Response
 
 from users.serializers import PartialRecipeSerializer
@@ -13,16 +12,7 @@ from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .paginator import CustomPagePaginator
 from .permissions import IsOwnerOrReadOnly
 from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
-
-
-class BinaryFileRenderer(BaseRenderer):
-    media_type = 'application/octet-stream'
-    format = None
-    charset = None
-    render_style = 'binary'
-
-    def render(self, data, media_type=None, renderer_context=None):
-        return data
+from .renders import BinaryFileRenderer
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,17 +33,17 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipesViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]
     queryset = Recipe.objects.all()
     pagination_class = CustomPagePaginator
     filter_backends = [CustomFilterBackend]
 
     def get_queryset(self):
         user = self.request.user
-        fav = Favorite.objects.all().filter(
+        fav = Favorite.objects.filter(
             user=user.pk
         ).values_list('recipe_id', flat=True).distinct()
-        shop = ShoppingCart.objects.all().filter(
+        shop = ShoppingCart.objects.filter(
             user=user.pk
         ).values_list('recipe_id', flat=True).distinct()
         queryset = super().get_queryset()
@@ -137,7 +127,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             url_path='download_shopping_cart',
             renderer_classes=(BinaryFileRenderer,))
     def download_shopping_cart(self, request):
-        shopping_list = ShoppingCart.objects.all().filter(
+        shopping_list = ShoppingCart.objects.filter(
             user=request.user
         ).values(
             'recipe__ingredients__name',
@@ -159,4 +149,3 @@ class RecipesViewSet(viewsets.ModelViewSet):
             headers=headers,
             content_type='application/txt'
         )
-

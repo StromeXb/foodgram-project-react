@@ -47,13 +47,7 @@ class SubscribeSerializer(UserSerializer):
         }
 
     def get_recipes(self, obj):
-        recipes_limit = 10
-        try:
-            recipes_limit = self.context[
-                'request'
-            ].query_params['recipes_limit']
-        except Exception:
-            pass
+        recipes_limit = self.context['recipes_limit']
         queryset = obj.recipes.all()[:int(recipes_limit)]
         serializer = PartialRecipeSerializer(queryset, many=True)
         return serializer.data

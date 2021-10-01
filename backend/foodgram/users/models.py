@@ -1,39 +1,45 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
     """
-    User class
+    Класс пользователей
     """
     username_validator = UnicodeUsernameValidator()
 
     username = models.CharField(
-        _('username'),
+        'имя пользователя',
         max_length=150,
         unique=True,
-        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+        help_text=(
+            'Required. 150 characters or fewer.' +
+            'Letters, digits and @/./+/-/_ only.'
+        ),
         validators=[username_validator],
         error_messages={
-            'unique': _("A user with that username already exists."),
+            'unique': "A user with that username already exists.",
         },
     )
-    first_name = models.CharField(_('first name'), max_length=150, blank=False)
-    last_name = models.CharField(_('last name'), max_length=150, blank=False)
+    first_name = models.CharField('Имя', max_length=150, blank=False)
+    last_name = models.CharField('Фамилия', max_length=150, blank=False)
     email = models.EmailField(
-        _('email address'),
+        'почта',
         unique=True,
         max_length=254,
         blank=False,
         error_messages={
-             'unique': _("A user with that email already exists."),
+             'unique': "A user with that email already exists.",
         },
     )
-    password = models.CharField(_('password'), max_length=150, blank=False)
+    password = models.CharField('пароль', max_length=150, blank=False)
 
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'password']
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 
 class Subscribe(models.Model):
@@ -43,14 +49,22 @@ class Subscribe(models.Model):
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="subscriber"
+        related_name="subscriber",
+        verbose_name='подписчик'
     )
 
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="author"
+        related_name="author",
+        verbose_name='автор'
     )
 
     class Meta:
-        unique_together = [["subscriber", "author"]]
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['subscriber', 'author'], name='unique_subscriber'
+            ),
+        ]
