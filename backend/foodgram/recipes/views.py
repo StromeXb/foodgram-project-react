@@ -77,7 +77,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'errors': 'Already in favorites'}
-                    )
+                )
             Favorite.objects.create(user=request.user, recipe=recipe)
             serializer = PartialRecipeSerializer(recipe)
             return Response(serializer.data)
@@ -86,7 +86,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'errors': 'Not in favorites'}
-                    )
+                )
             Favorite.objects.filter(user=request.user, recipe=recipe).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -105,7 +105,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'errors': 'Already in shopping cart'}
-                    )
+                )
             ShoppingCart.objects.create(user=request.user, recipe=recipe)
             serializer = PartialRecipeSerializer(recipe)
             return Response(serializer.data)
@@ -114,7 +114,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'errors': 'Not in shopping cart'}
-                    )
+                )
             ShoppingCart.objects.filter(
                 user=request.user,
                 recipe=recipe
@@ -143,7 +143,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
             'Content-Disposition': 'attachment; filename="shopping_list.txt"'
         }
         for line in shopping_list:
-            text += str(line[0])+': '+str(line[1])+', '+str(line[2])+'\n'
+            text += (str(line[0])+': ' + str(line[1])
+                     + ', ' + str(line[2]) + '\n')
         return Response(
             data=bytes(text.encode('utf8')),
             headers=headers,
