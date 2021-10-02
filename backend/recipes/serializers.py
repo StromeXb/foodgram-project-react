@@ -105,7 +105,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 ing_list.append(ingredients['ingredient']['id'])
             if list(ing_list) > set(ing_list):
                 raise serializers.ValidationError(
-                    'Duplicate ingredients' + ingredients
+                    'Duplicate ingredients'
                 )
             for ing in ingredients:
                 if ing['amount'] < 1:
