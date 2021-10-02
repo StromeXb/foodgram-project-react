@@ -104,7 +104,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
             if list(ingredients) > set(ingredients):
                 raise serializers.ValidationError(
-                    'Duplicate ingredients'
+                    'Duplicate ingredients' + ingredients
                 )
             for ing in ingredients:
                 if ing['amount'] < 1:
