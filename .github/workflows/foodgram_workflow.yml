@@ -60,10 +60,9 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          context: ./infra
           stack_file_name: docker-compose.yaml
-          path: ./foodgram-react-django
           script: |
+            cd foodgram-react-django/
             sudo docker pull stromex/foodgram-backend:latest
             sudo docker-compose stop
             sudo docker-compose rm backend
