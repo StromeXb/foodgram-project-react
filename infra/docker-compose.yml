@@ -21,7 +21,7 @@ services:
   frontend:
     image: stromex/foodgram-frontend:latest
     volumes:
-      - frontend_data:/app/result_build/
+      - ../frontend:/app/result_build/
   nginx:
     image: nginx:1.19.3
     ports:
@@ -37,7 +37,6 @@ services:
       - backend
       - frontend
 volumes:
-  frontend_data:
   postgres_data:
   static_value:
   media_value:

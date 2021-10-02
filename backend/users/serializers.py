@@ -22,6 +22,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
+        if not user.pk:
+            return False
         if Subscribe.objects.filter(subscriber=user, author=obj).exists():
             return True
         return False
