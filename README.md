@@ -65,6 +65,6 @@ docker-compose exec web python manage.py loaddata ingredients.json
 ***Автор проекта:***
 Брагин Юрий (stromex@yandex.ru)
 
-Развернутый на сервере проект: http://130.193.41.199/
-Админка: http://130.193.41.199/admin/
-Инструкция по работе с API: http://130.193.41.199/api/docs/
+1. Развернутый на сервере проект: http://130.193.41.199/
+2. Админка: http://130.193.41.199/admin/
+3. Инструкция по работе с API: http://130.193.41.199/api/docs/
