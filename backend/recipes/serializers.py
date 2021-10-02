@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -99,6 +100,17 @@ class RecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Please provide ingredients'
                 )
+            ingredients = attrs.get('recipe_content')
+
+            if list(ingredients) > set(ingredients):
+                raise serializers.ValidationError(
+                    'Duplicate ingredients'
+                )
+            for ing in ingredients:
+                if ing['amount'] < 1:
+                    raise serializers.ValidationError(
+                        'Amount must be greater then 1'
+                    )
         return attrs
 
     def create_or_update(self, validated_data, instance=None):
