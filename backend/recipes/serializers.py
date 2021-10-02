@@ -103,7 +103,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             ing_list = []
             for ingredients in attrs.get('recipe_content'):
                 ing_list.append(ingredients['ingredient']['id'])
-            if list(ing_list) > set(ing_list):
+            if len(list(ing_list)) > len(set(ing_list)):
                 raise serializers.ValidationError(
                     'Duplicate ingredients'
                 )
