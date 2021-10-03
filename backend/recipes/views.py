@@ -1,13 +1,11 @@
 from django.db.models import Case, CharField, Sum, Value, When
 from django.shortcuts import get_object_or_404
-
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.serializers import PartialRecipeSerializer
-
 from .filters import CustomFilterBackend, CustomSearch
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .paginator import CustomPagePaginator

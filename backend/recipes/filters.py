@@ -1,5 +1,4 @@
 from django.db.models import Case, IntegerField, Value, When
-
 from rest_framework import filters
 
 
