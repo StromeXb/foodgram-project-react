@@ -103,10 +103,21 @@ class RecipeSerializer(serializers.ModelSerializer):
             ing_list = []
             for ingredients in attrs.get('recipe_content'):
                 ing_list.append(ingredients['ingredient']['id'])
-            if len(list(ing_list)) > len(set(ing_list)):
-                raise serializers.ValidationError(
-                    'Ингредиенты повторяются, пожалуйста, укажите уникальные.'
-                )
+
+            for ing in ing_list:
+                if ing_list.count(ing)>1:
+                    ingredient = get_object_or_404(Ingredient, id=ing)
+                    error_data = {'ingredients': [
+                        f'Ингредиенты {ingredient.name} повторяются, '
+                        'пожалуйста, укажите уникальные.'
+                    ]
+                    }
+                    raise ParseError(error_data)
+
+            # if len(list(ing_list)) > len(set(ing_list)):
+            #     raise serializers.ValidationError(
+            #         'Ингредиенты повторяются, пожалуйста, укажите уникальные.'
+            #     )
             for ing in attrs.get('recipe_content'):
                 if int(ing['amount']) < 1:
                     ingredient = get_object_or_404(
