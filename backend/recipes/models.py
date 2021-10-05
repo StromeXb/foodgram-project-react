@@ -94,7 +94,8 @@ class Recipe(models.Model):
     cooking_time = models.IntegerField(
         verbose_name='Время приготовления',
         validators=[
-            MinValueValidator(1, 'This value must be an integer 1 or more'),
+            MinValueValidator(1, message=('Время приготовления должно ' +
+                                          'быть 1 минута или больше')),
         ]
     )
     author = models.ForeignKey(
@@ -128,9 +129,13 @@ class RecipeContent(models.Model):
         related_name='recipe_content',
         verbose_name='Ингредиент'
     )
-    amount = models.PositiveSmallIntegerField(
+    amount = models.IntegerField(
         verbose_name='Количество',
-        default=0
+        default=0,
+        validators=[
+            MinValueValidator(1, message=('Количество должно ' +
+                                          'быть 1 или больше')),
+        ]
     )
 
     class Meta:
