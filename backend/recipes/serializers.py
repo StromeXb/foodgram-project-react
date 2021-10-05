@@ -38,6 +38,7 @@ class RecipeContentSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.CharField(
         read_only=True, source='ingredient.measurement_unit'
     )
+    amount = serializers.IntegerField()
 
     class Meta:
         fields = ('id', 'name', 'measurement_unit', 'amount', )
@@ -47,7 +48,7 @@ class RecipeContentSerializer(serializers.ModelSerializer):
         if self.context.get('request').method == 'POST':
             if attrs['amount'] < 1:
                 raise serializers.ValidationError(
-                    'Amount must be greater then 1'
+                    'Количество должно быть больше 0'
                 )
         return attrs
 
@@ -68,6 +69,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=True
     )
     image = Base64ImageField(use_url=True, max_length=None)
+    cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
@@ -88,27 +90,27 @@ class RecipeSerializer(serializers.ModelSerializer):
         if self.context.get('request').method == 'POST':
             if attrs['cooking_time'] < 1:
                 raise serializers.ValidationError(
-                    'Cooking time must be greater then 1'
+                    'Время приготовления должно быть больше 0'
                 )
             if not attrs['tags']:
                 raise serializers.ValidationError(
-                    'Please provide tags'
+                    'Укажите тэги, пожалуйста.'
                 )
             if not attrs.get('recipe_content'):
                 raise serializers.ValidationError(
-                    'Please provide ingredients'
+                    'Добавьте хотя бы 1 ингредиент'
                 )
             ing_list = []
             for ingredients in attrs.get('recipe_content'):
                 ing_list.append(ingredients['ingredient']['id'])
             if len(list(ing_list)) > len(set(ing_list)):
                 raise serializers.ValidationError(
-                    'Duplicate ingredients'
+                    'Ингредиенты повторяются, пожалуйста, укажите уникальные.'
                 )
             for ing in attrs.get('recipe_content'):
                 if int(ing['amount']) < 1:
                     raise serializers.ValidationError(
-                        'Amount must be greater then 1'
+                        'Количество должно быть больше 0'
                     )
         return attrs
 
