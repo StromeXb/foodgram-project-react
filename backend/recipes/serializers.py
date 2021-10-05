@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, ParseError
 
 from users.serializers import UserSerializer
 from .fields import Base64ImageField
@@ -38,7 +38,6 @@ class RecipeContentSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.CharField(
         read_only=True, source='ingredient.measurement_unit'
     )
-    amount = serializers.IntegerField()
 
     class Meta:
         fields = ('id', 'name', 'measurement_unit', 'amount', )
@@ -47,9 +46,11 @@ class RecipeContentSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if self.context.get('request').method in ('POST', 'PUT', 'PATCH'):
             if attrs['amount'] < 1:
-                raise serializers.ValidationError(
-                    'Количество должно быть больше 0'
-                )
+                ingredient = get_object_or_404(
+                    Ingredient, id=attrs['ingredient']['id'])
+                error_data = {'amount': ['Количество для ингредиента '
+                                         f'{ingredient.name} должно быть больше 0.']}
+                raise ParseError(error_data)
         return attrs
 
 
@@ -69,7 +70,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=True
     )
     image = Base64ImageField(use_url=True, max_length=None)
-    cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
@@ -109,9 +109,11 @@ class RecipeSerializer(serializers.ModelSerializer):
                 )
             for ing in attrs.get('recipe_content'):
                 if int(ing['amount']) < 1:
-                    raise serializers.ValidationError(
-                        'Количество должно быть больше 0'
-                    )
+                    ingredient = get_object_or_404(
+                        Ingredient, id=attrs['ingredient']['id'])
+                    error_data = {'amount': ['Количество для ингредиента '
+                                  f'{ingredient.name} должно быть больше 0.']}
+                    raise ParseError(error_data)
         return attrs
 
     def create_or_update(self, validated_data, instance=None):
