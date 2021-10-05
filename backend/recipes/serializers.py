@@ -45,7 +45,7 @@ class RecipeContentSerializer(serializers.ModelSerializer):
         model = RecipeContent
 
     def validate(self, attrs):
-        if self.context.get('request').method == 'POST':
+        if self.context.get('request').method in ('POST', 'PUT', 'PATCH'):
             if attrs['amount'] < 1:
                 raise serializers.ValidationError(
                     'Количество должно быть больше 0'
@@ -87,7 +87,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
-        if self.context.get('request').method == 'POST':
+        if self.context.get('request').method in ('POST', 'PUT', 'PATCH'):
             if attrs['cooking_time'] < 1:
                 raise serializers.ValidationError(
                     'Время приготовления должно быть больше 0'

@@ -93,10 +93,10 @@ class Recipe(models.Model):
     text = models.TextField(verbose_name='Описание рецепта')
     cooking_time = models.IntegerField(
         verbose_name='Время приготовления',
-        validators=[
-            MinValueValidator(1, message=('Время приготовления должно ' +
-                                          'быть 1 минута или больше')),
-        ]
+        # validators=[
+        #     MinValueValidator(1, message=('Время приготовления должно ' +
+        #                                   'быть 1 минута или больше')),
+        # ]
     )
     author = models.ForeignKey(
         User,
@@ -131,11 +131,11 @@ class RecipeContent(models.Model):
     )
     amount = models.IntegerField(
         verbose_name='Количество',
-        default=0,
-        validators=[
-            MinValueValidator(1, message=('Количество должно ' +
-                                          'быть 1 или больше')),
-        ]
+        # default=0,
+        # validators=[
+        #     MinValueValidator(1, message=('Количество должно ' +
+        #                                   'быть 1 или больше')),
+        # ]
     )
 
     class Meta:
